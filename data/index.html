@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Growatt SHINE WiFi X</title>
+<style>
+:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--accent:#00c4b4;--accent2:#0080ff;--text:#e6edf3;--muted:#8b949e;--danger:#ff4d4f;--warn:#faad14;--ok:#52c41a;font-size:14px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Courier New',monospace;min-height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 16px;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:4px}
+.logo{font-size:1.05rem;font-weight:700;color:var(--accent);letter-spacing:.05em;white-space:nowrap}
+.logo span{color:var(--accent2)}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.badge{background:var(--accent);color:#000;font-size:.66rem;padding:2px 7px;border-radius:3px;font-weight:700;letter-spacing:.07em}
+.badge.err{background:var(--danger);color:#fff}
+.nav{display:flex;flex-wrap:wrap;gap:2px}
+.nav-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-family:'Courier New',monospace;font-size:.75rem;letter-spacing:.05em;padding:5px 10px;text-transform:uppercase;border-radius:4px;transition:all .2s}
+.nav-btn:hover,.nav-btn.active{color:var(--accent);background:rgba(0,196,180,.12)}
+.tab-content{display:none;padding:20px}
+.tab-content.active{display:block}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px}
+.card-title{color:var(--accent);font-size:.88rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:680px){.grid-4,.grid-3{grid-template-columns:repeat(2,1fr)}.grid-2{grid-template-columns:1fr}}
+.tile{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:13px 15px;display:flex;flex-direction:column;gap:3px}
+.tile-label{color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.08em}
+.tile-value{font-size:1.35rem;font-weight:700;color:var(--text)}
+.tile-value.hi{color:var(--accent)}
+.tile-unit{color:var(--muted);font-size:.74rem}
+.sdot{width:9px;height:9px;border-radius:50%;display:inline-block;background:var(--ok);box-shadow:0 0 6px var(--ok)}
+.sdot.err{background:var(--danger);box-shadow:0 0 6px var(--danger)}
+.sdot.warn{background:var(--warn);box-shadow:0 0 6px var(--warn)}
+.chart-wrap{position:relative;height:200px;margin-top:8px}
+canvas{width:100%!important;height:100%!important}
+.slider-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.slider-row label{color:var(--muted);font-size:.74rem;text-transform:uppercase;letter-spacing:.07em;min-width:120px}
+input[type=range]{flex:1;min-width:140px;-webkit-appearance:none;height:4px;background:var(--border);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--bg)}
+.cap-val{color:var(--accent);font-weight:700;font-size:.95rem;min-width:60px;text-align:right}
+input[type=text],input[type=number],input[type=password],select{background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:'Courier New',monospace;font-size:.83rem;padding:7px 10px;outline:none;width:100%;transition:box-shadow .2s}
+input:focus,select:focus{box-shadow:0 0 0 2px rgba(0,196,180,.2);border-color:var(--accent)}
+.form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.form-group label{color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.07em}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:500px){.form-row{grid-template-columns:1fr}}
+.btn{border:none;border-radius:5px;cursor:pointer;font-family:'Courier New',monospace;font-size:.78rem;font-weight:700;letter-spacing:.05em;padding:8px 18px;text-transform:uppercase;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--accent);color:#000}.btn-primary:hover{background:#00e0ce}
+.btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{background:#ff7070}
+.btn-warn{background:var(--warn);color:#000}.btn-warn:hover{filter:brightness(1.1)}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted)}.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm{padding:5px 11px;font-size:.7rem}
+.alert{padding:9px 13px;border-radius:6px;font-size:.78rem;margin-bottom:10px;display:none}
+.alert.ok{background:rgba(82,196,26,.1);border:1px solid var(--ok);color:var(--ok);display:block}
+.alert.err{background:rgba(255,77,79,.1);border:1px solid var(--danger);color:var(--danger);display:block}
+.alert.warn{background:rgba(250,173,20,.1);border:1px solid var(--warn);color:var(--warn);display:block}
+.relay-row{display:flex;align-items:center;gap:14px}
+.toggle{position:relative;display:inline-block;width:44px;height:22px}
+.toggle input{opacity:0;width:0;height:0}
+.tog-slider{position:absolute;inset:0;background:var(--border);border-radius:22px;cursor:pointer;transition:.3s}
+.tog-slider:before{content:'';position:absolute;height:16px;width:16px;left:3px;top:3px;background:var(--muted);border-radius:50%;transition:.3s}
+input:checked+.tog-slider{background:var(--accent)}
+input:checked+.tog-slider:before{transform:translateX(22px);background:#000}
+/* Bar chart */
+.bar-chart-wrap{height:220px;position:relative;margin-top:8px}
+.stat-tabs{display:flex;gap:0;margin-bottom:12px;border:1px solid var(--border);border-radius:6px;overflow:hidden;width:fit-content}
+.stat-tab{background:none;border:none;color:var(--muted);cursor:pointer;font-family:'Courier New',monospace;font-size:.73rem;letter-spacing:.05em;padding:5px 14px;text-transform:uppercase;transition:all .2s}
+.stat-tab.active{background:var(--accent);color:#000;font-weight:700}
+/* Eco tiles */
+.eco-tile{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:18px;display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center}
+.eco-icon{font-size:2rem;line-height:1}
+.eco-value{font-size:1.5rem;font-weight:700;color:var(--ok)}
+.eco-label{color:var(--muted);font-size:.73rem;text-transform:uppercase;letter-spacing:.07em}
+.progress-wrap{background:var(--border);border-radius:4px;height:5px;width:100%;overflow:hidden}
+.progress-bar{height:5px;border-radius:4px;background:var(--ok);transition:width .6s}
+/* Fault table */
+.fault-table{width:100%;border-collapse:collapse;font-size:.78rem}
+.fault-table th{color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:5px 9px;border-bottom:1px solid var(--border);text-align:left;font-size:.7rem}
+.fault-table td{padding:7px 9px;border-bottom:1px solid rgba(48,54,61,.5);color:var(--text)}
+.fault-table tr:last-child td{border-bottom:none}
+.fault-table tr:hover td{background:rgba(0,196,180,.04)}
+.ftag{display:inline-block;padding:2px 7px;border-radius:3px;font-size:.66rem;font-weight:700;letter-spacing:.05em}
+.ftag.active{background:rgba(255,77,79,.15);color:var(--danger);border:1px solid var(--danger)}
+.ftag.clear{background:rgba(82,196,26,.12);color:var(--ok);border:1px solid var(--ok)}
+.fault-empty{color:var(--muted);font-size:.8rem;text-align:center;padding:22px}
+/* Detail grid */
+.detail-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+@media(max-width:600px){.detail-grid{grid-template-columns:1fr}}
+.detail-item{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:11px 13px}
+.detail-key{color:var(--muted);font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px}
+.detail-val{color:var(--text);font-size:.9rem;font-weight:700}
+.detail-val.accent{color:var(--accent)}
+/* User table */
+.user-table{width:100%;border-collapse:collapse;font-size:.8rem}
+.user-table th{color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:6px 10px;border-bottom:1px solid var(--border);text-align:left;font-size:.7rem}
+.user-table td{padding:8px 10px;border-bottom:1px solid rgba(48,54,61,.5)}
+.user-table tr:last-child td{border-bottom:none}
+.role-badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:.66rem;font-weight:700}
+.role-badge.admin{background:rgba(255,77,79,.15);color:var(--danger);border:1px solid var(--danger)}
+.role-badge.user{background:rgba(0,196,180,.12);color:var(--accent);border:1px solid var(--accent)}
+.role-badge.view{background:rgba(139,148,158,.15);color:var(--muted);border:1px solid var(--border)}
+/* NTP clock */
+.clock-display{font-size:2.2rem;font-weight:700;color:var(--accent);letter-spacing:.08em;font-variant-numeric:tabular-nums;text-align:center;padding:16px 0}
+.date-display{font-size:.85rem;color:var(--muted);text-align:center;margin-top:-10px;margin-bottom:12px}
+.ntp-status{display:flex;align-items:center;gap:8px;font-size:.78rem;color:var(--muted);margin-top:8px}
+footer{text-align:center;color:var(--muted);font-size:.68rem;padding:18px;border-top:1px solid var(--border);margin-top:16px}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">GROW<span>ATT</span>&thinsp;SHINE&thinsp;X</div>
+  <nav class="nav" id="mainNav">
+    <button class="nav-btn active" onclick="showTab('energie',this)">Energie</button>
+    <button class="nav-btn" onclick="showTab('statistik',this)">Statistik</button>
+    <button class="nav-btn" onclick="showTab('umwelt',this)">Umwelt</button>
+    <button class="nav-btn" onclick="showTab('anlage',this)">Anlage</button>
+    <button class="nav-btn" onclick="showTab('faultlog',this)">Fehler</button>
+    <button class="nav-btn" onclick="showTab('ntp',this)">Zeit/NTP</button>
+    <button class="nav-btn" onclick="showTab('users',this)">Benutzer</button>
+    <button class="nav-btn" onclick="showTab('settings',this)">Einstellungen</button>
+    <button class="nav-btn" onclick="showTab('system',this)">System</button>
+  </nav>
+  <div class="topbar-right">
+    <span class="sdot" id="mqttDot" title="MQTT"></span>
+    <span class="sdot warn" id="ntpDot" title="NTP"></span>
+    <span class="badge" id="fwBadge">v&hellip;</span>
+  </div>
+</div>
+
+<!-- ══ ENERGIE ══════════════════════════════════════════════ -->
+<div class="tab-content active" id="tab-energie">
+  <div class="card">
+    <div class="card-title">⚡ Energieübersicht</div>
+    <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;font-size:.76rem">
+      <span><span class="sdot" id="pvDot"></span> PV‑Leistung</span>
+      <span><span class="sdot" style="background:var(--warn);box-shadow:0 0 6px var(--warn)"></span> Ertrag</span>
+      <span style="margin-left:auto;color:var(--muted)" id="lastUpdateTxt"></span>
+    </div>
+    <div class="grid-4">
+      <div class="tile"><span class="tile-label">Heute (kWh)</span><span class="tile-value hi" id="todayKWh">–</span><span class="tile-unit">kWh</span></div>
+      <div class="tile"><span class="tile-label">Gesamt (kWh)</span><span class="tile-value" id="totalKWh">–</span><span class="tile-unit">kWh</span></div>
+      <div class="tile"><span class="tile-label">Heute (€)</span><span class="tile-value" id="todayEur">–</span><span class="tile-unit">€</span></div>
+      <div class="tile"><span class="tile-label">Gesamt (€)</span><span class="tile-value" id="totalEur">–</span><span class="tile-unit">€</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📡 Live‑Messwerte</div>
+    <div class="grid-3">
+      <div class="tile"><span class="tile-label">PV Leistung</span><span class="tile-value hi" id="pvW">–</span><span class="tile-unit">W</span></div>
+      <div class="tile"><span class="tile-label">AC Ausgang</span><span class="tile-value hi" id="acW">–</span><span class="tile-unit">W</span></div>
+      <div class="tile"><span class="tile-label">Einspeise‑Cap</span><span class="tile-value" id="capWLive" style="color:var(--warn)">–</span><span class="tile-unit">W</span></div>
+      <div class="tile"><span class="tile-label">AC Spannung</span><span class="tile-value" id="acV">–</span><span class="tile-unit">V</span></div>
+      <div class="tile"><span class="tile-label">Frequenz</span><span class="tile-value" id="acHz">–</span><span class="tile-unit">Hz</span></div>
+      <div class="tile"><span class="tile-label">Temperatur</span><span class="tile-value" id="tempC">–</span><span class="tile-unit">°C</span></div>
+      <div class="tile"><span class="tile-label">PV1 Spannung</span><span class="tile-value" id="pv1V">–</span><span class="tile-unit">V</span></div>
+      <div class="tile"><span class="tile-label">PV1 Strom</span><span class="tile-value" id="pv1A">–</span><span class="tile-unit">A</span></div>
+      <div class="tile"><span class="tile-label">Status</span><span class="tile-value" id="invStatus">–</span><span class="tile-unit" id="faultTxt"></span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📈 PV‑Erzeugung Verlauf</div>
+    <div class="chart-wrap"><canvas id="pvChart"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-title">🔧 Einspeise‑Begrenzung &amp; Relais</div>
+    <div class="slider-row" style="margin-bottom:16px">
+      <label>Max. Einspeiseleistung</label>
+      <input type="range" id="capSlider" min="1" max="1500" step="10" value="1500" oninput="document.getElementById('capDisplay').textContent=this.value">
+      <span class="cap-val"><span id="capDisplay">1500</span> W</span>
+      <button class="btn btn-primary btn-sm" onclick="saveCap()">Speichern</button>
+    </div>
+    <div class="relay-row">
+      <label class="toggle"><input type="checkbox" id="relayToggle" onchange="setRelay(this.checked)"><span class="tog-slider"></span></label>
+      <span style="font-size:.83rem">Relais <span id="relayLabel">AUS</span></span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">⚡ Direkte Leistungsbegrenzung (Modbus FC06)</div>
+    <div id="alertPwr" class="alert"></div>
+    <div style="font-size:.74rem;color:var(--muted);margin-bottom:12px;padding:8px 12px;background:rgba(250,173,20,.07);border:1px solid rgba(250,173,20,.25);border-radius:5px">
+      ⚠ Schreibt direkt in Register 0x001F/0x0020 des Wechselrichters. Muss in Einstellungen aktiviert werden.
+    </div>
+    <div class="slider-row" style="margin-bottom:14px">
+      <label>Leistungsrate</label>
+      <input type="range" id="pwrSlider" min="0" max="100" step="1" value="100" oninput="onPwrSlider(this.value)">
+      <span class="cap-val"><span id="pwrDisplay">100</span> %</span>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <button class="btn btn-primary btn-sm" onclick="applyPowerRate(true)">⚡ An Inverter senden</button>
+      <button class="btn btn-ghost btn-sm" onclick="applyPowerRate(false)">Nur speichern</button>
+      <span style="font-size:.74rem;color:var(--muted)">Aktiv: <span id="pwrRateActive" style="color:var(--accent);font-weight:700">–</span> % = <span id="pwrRateW">–</span> W</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STATISTIK ════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-statistik">
+  <div class="card">
+    <div class="card-title">
+      📊 Ertrag‑Statistik
+      <button class="btn btn-danger btn-sm" onclick="resetStatistik()" style="margin-left:auto">↺ Zurücksetzen</button>
+    </div>
+    <div id="alertStat" class="alert"></div>
+    <div class="stat-tabs">
+      <button class="stat-tab active" onclick="setStatMode('tag',this)">Heute</button>
+      <button class="stat-tab" onclick="setStatMode('woche',this)">7 Tage</button>
+      <button class="stat-tab" onclick="setStatMode('monat',this)">Monat</button>
+      <button class="stat-tab" onclick="setStatMode('jahr',this)">Jahr</button>
+    </div>
+    <div class="bar-chart-wrap"><canvas id="statChart"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Zusammenfassung</div>
+    <div class="grid-4">
+      <div class="tile"><span class="tile-label">Gesamt erzeugt</span><span class="tile-value hi" id="stTotal">–</span></div>
+      <div class="tile"><span class="tile-label">Ø pro Tag</span><span class="tile-value" id="stAvg">–</span></div>
+      <div class="tile"><span class="tile-label">Bestes Ergebnis</span><span class="tile-value" id="stBest">–</span></div>
+      <div class="tile"><span class="tile-label">Gesamtertrag (€)</span><span class="tile-value" id="stEur">–</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ UMWELTBONUS ══════════════════════════════════════════ -->
+<div class="tab-content" id="tab-umwelt">
+  <div class="card">
+    <div class="card-title">
+      🌿 Umweltbonus – Einsparungen durch Solarenergie
+      <button class="btn btn-danger btn-sm" onclick="resetUmwelt()" style="margin-left:auto">↺ Zurücksetzen</button>
+    </div>
+    <div id="alertUmwelt" class="alert"></div>
+    <div class="grid-3" style="margin-bottom:16px">
+      <div class="eco-tile"><div class="eco-icon">🌿</div><div class="eco-value" id="ecoCoal">0.0</div><div class="eco-label">kg Kohle gespart</div><div class="progress-wrap"><div class="progress-bar" id="ecoCoalBar" style="width:0%"></div></div></div>
+      <div class="eco-tile"><div class="eco-icon">☁️</div><div class="eco-value" id="ecoCO2" style="color:var(--accent)">0.0</div><div class="eco-label">kg CO₂ vermieden</div><div class="progress-wrap"><div class="progress-bar" id="ecoCO2Bar" style="width:0%;background:var(--accent)"></div></div></div>
+      <div class="eco-tile"><div class="eco-icon">🌳</div><div class="eco-value" id="ecoTrees" style="color:var(--warn)">0.0</div><div class="eco-label">Äquivalent Bäume/Jahr</div><div class="progress-wrap"><div class="progress-bar" id="ecoTreesBar" style="width:0%;background:var(--warn)"></div></div></div>
+    </div>
+    <div class="grid-2">
+      <div class="tile"><span class="tile-label">CO₂ heute</span><span class="tile-value" id="ecoCO2Today">–</span><span class="tile-unit">kg</span></div>
+      <div class="tile"><span class="tile-label">CO₂ gesamt</span><span class="tile-value hi" id="ecoCO2Total">–</span><span class="tile-unit">kg</span></div>
+      <div class="tile"><span class="tile-label">Kohle heute</span><span class="tile-value" id="ecoCoalToday">–</span><span class="tile-unit">kg</span></div>
+      <div class="tile"><span class="tile-label">Kohle gesamt</span><span class="tile-value hi" id="ecoCoalTotal">–</span><span class="tile-unit">kg</span></div>
+    </div>
+    <div style="margin-top:12px;padding:9px 13px;background:rgba(0,196,180,.06);border:1px solid rgba(0,196,180,.2);border-radius:6px;font-size:.73rem;color:var(--muted)">
+      CO₂‑Faktor 0.527 kg/kWh (dt. Strommix 2023) · Kohlefaktor 0.404 kg/kWh · Baum ≈ 12.5 kg CO₂/Jahr
+    </div>
+  </div>
+</div>
+
+<!-- ══ ANLAGE ════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-anlage">
+  <div class="card">
+    <div class="card-title">🏗 Anlagendetails – Growatt MIC 1500TL‑X</div>
+    <div class="detail-grid" style="margin-bottom:16px">
+      <div class="detail-item"><div class="detail-key">Wechselrichter</div><div class="detail-val accent">Growatt MIC 1500TL‑X</div></div>
+      <div class="detail-item"><div class="detail-key">Dongle</div><div class="detail-val accent">SHINE WiFi X (ESP8266)</div></div>
+      <div class="detail-item"><div class="detail-key">Max. AC‑Leistung</div><div class="detail-val">1500 W</div></div>
+      <div class="detail-item"><div class="detail-key">Modbus Adresse</div><div class="detail-val">0x01</div></div>
+      <div class="detail-item"><div class="detail-key">RS485 Baud</div><div class="detail-val">9600</div></div>
+      <div class="detail-item"><div class="detail-key">Firmware</div><div class="detail-val" id="anlFw">–</div></div>
+    </div>
+    <div id="alertAnlage" class="alert"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Anlagenname</label><input type="text" id="anlName" placeholder="Meine Solaranlage"></div>
+      <div class="form-group"><label>Installationsdatum</label><input type="text" id="anlDate" placeholder="2024-01-01"></div>
+      <div class="form-group"><label>Stadt</label><input type="text" id="anlCity" placeholder="Wien"></div>
+      <div class="form-group"><label>Land</label><input type="text" id="anlCountry" placeholder="Österreich"></div>
+      <div class="form-group"><label>Installierte Leistung (Wp)</label><input type="number" id="anlPeak" placeholder="1500"></div>
+      <div class="form-group"><label>Strompreis (€/kWh)</label><input type="number" id="anlEurKwh" step="0.01" placeholder="0.30"></div>
+    </div>
+    <button class="btn btn-primary" onclick="saveAnlage()">Speichern</button>
+  </div>
+</div>
+
+<!-- ══ FEHLER-LOG ════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-faultlog">
+  <div class="card">
+    <div class="card-title">
+      ⚠ Fehler‑Log
+      <span id="faultCount" style="margin-left:auto;font-size:.73rem;color:var(--muted)">0 Einträge</span>
+      <button class="btn btn-ghost btn-sm" onclick="clearFaultLog()" style="margin-left:8px">Leeren</button>
+    </div>
+    <div class="fault-empty" id="faultEmpty">✓ Keine Fehler aufgezeichnet</div>
+    <table class="fault-table" id="faultTable" style="display:none">
+      <thead><tr><th>#</th><th>Zeitstempel</th><th>Code</th><th>Beschreibung</th><th>AC‑W</th><th>Status</th></tr></thead>
+      <tbody id="faultTbody"></tbody>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-title">Fehlercode‑Referenz</div>
+    <table class="fault-table">
+      <thead><tr><th>Code</th><th>Bezeichnung</th><th>Maßnahme</th></tr></thead>
+      <tbody>
+        <tr><td>0x0001</td><td>DC Over Voltage</td><td>PV-Spannung prüfen</td></tr>
+        <tr><td>0x0002</td><td>DC Bus Over Voltage</td><td>Service kontaktieren</td></tr>
+        <tr><td>0x0004</td><td>DC Bus Low Voltage</td><td>PV-Einspeisung prüfen</td></tr>
+        <tr><td>0x0008</td><td>DC Bus Unbalance</td><td>Kabelverbindungen prüfen</td></tr>
+        <tr><td>0x0010</td><td>No Grid</td><td>Netzspannung prüfen</td></tr>
+        <tr><td>0x0020</td><td>Grid Over Voltage</td><td>Netzbetreiber informieren</td></tr>
+        <tr><td>0x0040</td><td>Grid Under Voltage</td><td>Netzspannung messen</td></tr>
+        <tr><td>0x0080</td><td>Grid Over Frequency</td><td>Netzfrequenz prüfen</td></tr>
+        <tr><td>0x0100</td><td>Grid Under Frequency</td><td>Netzfrequenz prüfen</td></tr>
+        <tr><td>0x0400</td><td>Inverter Over Temp</td><td>Belüftung prüfen</td></tr>
+        <tr><td>0x0800</td><td>Over Temperature</td><td>Kühlung verbessern</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══ ZEIT / NTP ════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-ntp">
+  <div class="card">
+    <div class="card-title">🕐 Systemzeit – NTP Synchronisation</div>
+    <div class="clock-display" id="clockDisplay">--:--:--</div>
+    <div class="date-display" id="dateDisplay">Synchronisiere...</div>
+    <div class="ntp-status">
+      <span class="sdot warn" id="ntpDot2"></span>
+      <span id="ntpStatusTxt">Warte auf Synchronisation...</span>
+      <span style="margin-left:auto;color:var(--muted);font-size:.72rem" id="ntpLastSync">–</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">NTP Server Konfiguration</div>
+    <div id="alertNtp" class="alert"></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>NTP Server 1 (primär)</label>
+        <input type="text" id="ntpServer1" placeholder="pool.ntp.org">
+      </div>
+      <div class="form-group">
+        <label>NTP Server 2 (fallback)</label>
+        <input type="text" id="ntpServer2" placeholder="time.google.com">
+      </div>
+      <div class="form-group">
+        <label>NTP Server 3 (fallback)</label>
+        <input type="text" id="ntpServer3" placeholder="time.cloudflare.com">
+      </div>
+      <div class="form-group">
+        <label>Zeitzone (UTC Offset Stunden)</label>
+        <select id="ntpTzOffset">
+          <option value="-12">UTC-12</option><option value="-11">UTC-11</option>
+          <option value="-10">UTC-10</option><option value="-9">UTC-9</option>
+          <option value="-8">UTC-8</option><option value="-7">UTC-7</option>
+          <option value="-6">UTC-6</option><option value="-5">UTC-5</option>
+          <option value="-4">UTC-4</option><option value="-3">UTC-3</option>
+          <option value="-2">UTC-2</option><option value="-1">UTC-1</option>
+          <option value="0">UTC+0 (London)</option>
+          <option value="1" selected>UTC+1 (Berlin/Wien/Paris)</option>
+          <option value="2">UTC+2 (Athen/Kairo)</option>
+          <option value="3">UTC+3 (Moskau)</option>
+          <option value="4">UTC+4</option><option value="5">UTC+5</option>
+          <option value="5.5">UTC+5:30 (Indien)</option>
+          <option value="6">UTC+6</option><option value="7">UTC+7</option>
+          <option value="8">UTC+8 (China)</option>
+          <option value="9">UTC+9 (Japan)</option>
+          <option value="9.5">UTC+9:30 (Australien/Darwin)</option>
+          <option value="10">UTC+10</option><option value="11">UTC+11</option>
+          <option value="12">UTC+12</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Sommerzeit (DST) automatisch</label>
+        <div class="relay-row" style="margin-top:6px">
+          <label class="toggle"><input type="checkbox" id="ntpDst" checked><span class="tog-slider"></span></label>
+          <span style="font-size:.8rem">DST aktiviert</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Sync-Intervall</label>
+        <select id="ntpInterval">
+          <option value="3600">Stündlich</option>
+          <option value="21600" selected>Alle 6 Stunden</option>
+          <option value="43200">Alle 12 Stunden</option>
+          <option value="86400">Täglich</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:4px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="saveNtp()">NTP Speichern</button>
+      <button class="btn btn-ghost btn-sm" onclick="forceSyncNtp()">🔄 Jetzt synchronisieren</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Zeitstempel überall im System</div>
+    <div class="grid-3">
+      <div class="tile"><span class="tile-label">Letzte Modbus-Abfrage</span><span class="tile-value" id="tsModbus" style="font-size:.85rem">–</span></div>
+      <div class="tile"><span class="tile-label">Letzter MQTT-Publish</span><span class="tile-value" id="tsMqtt" style="font-size:.85rem">–</span></div>
+      <div class="tile"><span class="tile-label">Systemstart</span><span class="tile-value" id="tsStart" style="font-size:.85rem">–</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ BENUTZER ══════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-users">
+  <div class="card">
+    <div class="card-title">
+      👤 Benutzerverwaltung
+      <button class="btn btn-primary btn-sm" onclick="showAddUser()" style="margin-left:auto">+ Benutzer</button>
+    </div>
+    <div id="alertUser" class="alert"></div>
+    <table class="user-table" id="userTable">
+      <thead><tr><th>Benutzername</th><th>Rolle</th><th>Letzte Anmeldung</th><th>Status</th><th>Aktionen</th></tr></thead>
+      <tbody id="userTbody"></tbody>
+    </table>
+  </div>
+  <div class="card" id="addUserCard" style="display:none">
+    <div class="card-title" id="userFormTitle">Benutzer hinzufügen</div>
+    <div id="alertUserForm" class="alert"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Benutzername</label><input type="text" id="newUsername" placeholder="benutzername"></div>
+      <div class="form-group"><label>Passwort</label><input type="password" id="newPassword" placeholder="••••••••"></div>
+      <div class="form-group"><label>Rolle</label>
+        <select id="newRole">
+          <option value="admin">Admin (Vollzugriff)</option>
+          <option value="user" selected>Benutzer (Lesen + Steuerung)</option>
+          <option value="view">Gast (Nur Lesen)</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Passwort bestätigen</label><input type="password" id="newPasswordConfirm" placeholder="••••••••"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button class="btn btn-primary" onclick="saveUser()">Speichern</button>
+      <button class="btn btn-ghost" onclick="hideAddUser()">Abbrechen</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Web-Authentifizierung</div>
+    <div class="relay-row" style="margin-bottom:10px">
+      <label class="toggle"><input type="checkbox" id="authEnabled" onchange="toggleAuth(this.checked)"><span class="tog-slider"></span></label>
+      <span style="font-size:.82rem">Login-Schutz aktiviert</span>
+    </div>
+    <div style="font-size:.73rem;color:var(--muted)">
+      Wenn aktiviert: Webinterface und API erfordern HTTP Basic Auth.<br>
+      Standard: <code style="color:var(--accent)">admin / growatt123</code>
+    </div>
+  </div>
+</div>
+
+<!-- ══ EINSTELLUNGEN ════════════════════════════════════════ -->
+<div class="tab-content" id="tab-settings">
+  <div class="card">
+    <div class="card-title">🏠 Home Assistant Auto‑Discovery</div>
+    <div class="form-row">
+      <div class="form-group"><label>Discovery Prefix</label><input type="text" id="cfgHaPrefix" placeholder="homeassistant"></div>
+      <div class="form-group" style="justify-content:flex-end;padding-top:18px">
+        <div class="relay-row">
+          <label class="toggle"><input type="checkbox" id="cfgHaDisc"><span class="tog-slider"></span></label>
+          <span style="font-size:.8rem">Auto‑Discovery aktiviert</span>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:.72rem;color:var(--muted);margin-bottom:10px">Gerät erscheint automatisch unter HA → Integrationen → MQTT.</div>
+  </div>
+  <div class="card">
+    <div class="card-title">🔌 Modbus‑Schreibzugriff</div>
+    <div class="relay-row" style="margin-bottom:8px">
+      <label class="toggle"><input type="checkbox" id="cfgMbWrite"><span class="tog-slider"></span></label>
+      <span style="font-size:.8rem">Leistungsbegrenzung per Modbus FC06 freischalten</span>
+    </div>
+    <div style="font-size:.72rem;color:var(--muted)">Schreibt Register 0x001F/0x0020 direkt in den Wechselrichter. Nur bei stabiler RS485-Verbindung aktivieren.</div>
+  </div>
+  <div class="card">
+    <div class="card-title">📶 Netzwerk‑Konfiguration</div>
+    <div id="alertCfg" class="alert"></div>
+    <div class="form-row">
+      <div class="form-group"><label>SSID</label><input type="text" id="cfgSSID" placeholder="Netzwerkname"></div>
+      <div class="form-group"><label>Passwort</label><input type="password" id="cfgPass" placeholder="••••••••"></div>
+      <div class="form-group"><label>Hostname</label><input type="text" id="cfgHostname" placeholder="Growatt-SHINE-X" maxlength="32"></div>
+      <div class="form-group">
+        <label>IP‑Modus</label>
+        <select id="cfgIpMode" onchange="toggleStaticIp(this.value)">
+          <option value="dhcp">DHCP (automatisch)</option>
+          <option value="static">Statische IP</option>
+        </select>
+      </div>
+    </div>
+    <div id="staticIpBlock" style="display:none">
+      <div style="padding:10px 12px;margin-bottom:10px;background:rgba(0,128,255,.07);border:1px solid rgba(0,128,255,.2);border-radius:6px;font-size:.72rem;color:var(--muted)">
+        ⚠ Statische IP: Sicherstellen dass die IP im Netzwerk-Subnetz liegt und nicht vergeben ist.
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Statische IP‑Adresse</label><input type="text" id="cfgStaticIp" placeholder="192.168.1.100"></div>
+        <div class="form-group"><label>Subnetzmaske</label><input type="text" id="cfgSubnet" placeholder="255.255.255.0"></div>
+        <div class="form-group"><label>Standard‑Gateway</label><input type="text" id="cfgGateway" placeholder="192.168.1.1"></div>
+        <div class="form-group"><label>DNS‑Server</label><input type="text" id="cfgDns" placeholder="8.8.8.8"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📡 MQTT‑Broker</div>
+    <div class="form-row">
+      <div class="form-group"><label>Broker Host / IP</label><input type="text" id="cfgMHost" placeholder="192.168.1.100"></div>
+      <div class="form-group"><label>Port</label><input type="number" id="cfgMPort" min="1" max="65535" placeholder="1883"></div>
+      <div class="form-group"><label>Benutzername</label><input type="text" id="cfgMUser" placeholder="(optional)"></div>
+      <div class="form-group"><label>Passwort</label><input type="password" id="cfgMPass" placeholder="(optional)"></div>
+      <div class="form-group"><label>Topic Base</label><input type="text" id="cfgMTopic" placeholder="growatt/shine"></div>
+      <div class="form-group"><label>Gerätename</label><input type="text" id="cfgDevName" placeholder="Growatt-SHINE-X"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:6px">
+      <button class="btn btn-primary" onclick="saveConfig()">Konfiguration speichern</button>
+      <button class="btn btn-ghost" onclick="loadConfig()">Neu laden</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SYSTEM ════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-system">
+  <div class="card">
+    <div class="card-title">🖥 Systeminfo</div>
+    <div class="grid-3">
+      <div class="tile"><span class="tile-label">Firmware</span><span class="tile-value" id="sysFw" style="font-size:.82rem">–</span></div>
+      <div class="tile"><span class="tile-label">IP‑Adresse</span><span class="tile-value" id="sysIp" style="font-size:.82rem">–</span></div>
+      <div class="tile"><span class="tile-label">RSSI</span><span class="tile-value" id="sysRssi">–</span><span class="tile-unit">dBm</span></div>
+      <div class="tile"><span class="tile-label">Uptime</span><span class="tile-value" id="sysUptime" style="font-size:.82rem">–</span></div>
+      <div class="tile"><span class="tile-label">Freier Heap</span><span class="tile-value" id="sysHeap" style="font-size:.82rem">–</span><span class="tile-unit">B</span></div>
+      <div class="tile"><span class="tile-label">MQTT</span><span class="tile-value" id="sysMqtt" style="font-size:.82rem">–</span></div>
+      <div class="tile"><span class="tile-label">Hostname</span><span class="tile-value" id="sysHostname" style="font-size:.82rem">–</span></div>
+      <div class="tile"><span class="tile-label">MAC‑Adresse</span><span class="tile-value" id="sysMac" style="font-size:.72rem">–</span></div>
+      <div class="tile"><span class="tile-label">NTP Status</span><span class="tile-value" id="sysNtp" style="font-size:.82rem">–</span></div>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="refreshStatus()">🔄 Aktualisieren</button>
+      <button class="btn btn-warn btn-sm" onclick="doRestart()">⚡ Neustart</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title" style="color:var(--danger)">⚠ Factory Reset – Auf Werkseinstellungen zurücksetzen</div>
+    <div id="alertSys" class="alert"></div>
+    <div style="font-size:.78rem;color:var(--muted);margin-bottom:14px;padding:10px 14px;background:rgba(255,77,79,.07);border:1px solid rgba(255,77,79,.25);border-radius:6px">
+      Löscht <strong style="color:var(--danger)">alle gespeicherten Einstellungen</strong>: WLAN, MQTT, NTP, Leistungslimit, Benutzer, Anlagendetails.<br>
+      Das Gerät startet im AP‑Modus neu. <strong style="color:var(--warn)">Diese Aktion kann nicht rückgängig gemacht werden!</strong>
+    </div>
+    <div style="margin-bottom:12px;font-size:.78rem;color:var(--muted)">
+      Was wird zurückgesetzt:
+      <ul style="margin-top:6px;margin-left:18px;line-height:1.8">
+        <li>WLAN-Zugangsdaten (→ AP-Modus: <code style="color:var(--accent)">Growatt-Setup</code>)</li>
+        <li>MQTT-Broker Einstellungen</li>
+        <li>NTP-Server &amp; Zeitzone</li>
+        <li>Einspeise-Cap (→ 1500 W)</li>
+        <li>Leistungsrate (→ 100%)</li>
+        <li>Hostname (→ Growatt-SHINE-X)</li>
+        <li>Statische IP (→ DHCP)</li>
+        <li>Alle Benutzer (→ admin/growatt123)</li>
+        <li>Anlagendetails (localStorage)</li>
+        <li>Statistik-Offset (localStorage)</li>
+      </ul>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <input type="text" id="resetConfirmInput" placeholder='Zur Bestätigung "RESET" eingeben' style="max-width:280px">
+      <button class="btn btn-danger" onclick="doFactoryReset()">🗑 Factory Reset</button>
+    </div>
+  </div>
+</div>
+
+<footer>Growatt SHINE WiFi X &nbsp;·&nbsp; <span id="footVer">–</span> &nbsp;·&nbsp; ESP8266 Firmware</footer>
+
+<script>
+'use strict';
+// ════════════════════════════════════════════════════════════
+//  TAB SWITCHING — single clean implementation
+// ════════════════════════════════════════════════════════════
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const tab = document.getElementById('tab-' + id);
+  if (tab) tab.classList.add('active');
+  if (btn) btn.classList.add('active');
+  // lazy init
+  if (id === 'statistik') setTimeout(renderStatChart, 60);
+  if (id === 'ntp') updateClockDisplay();
+  if (id === 'anlage') document.getElementById('anlFw').textContent = document.getElementById('fwBadge').textContent;
+}
+
+// ════════════════════════════════════════════════════════════
+//  PV LINE CHART
+// ════════════════════════════════════════════════════════════
+const MAX_PTS = 60, pvHist = [];
+let pCtx, pW, pH;
+const PP = {t:10, r:10, b:28, l:48};
+
+function initChart() {
+  const cv = document.getElementById('pvChart');
+  pCtx = cv.getContext('2d');
+  function rsz() {
+    cv.width = cv.parentElement.clientWidth; cv.height = 200;
+    pW = cv.width; pH = cv.height; drawChart();
+  }
+  window.addEventListener('resize', rsz); rsz();
+}
+
+function drawChart() {
+  if (!pCtx) return;
+  const W=pW, H=pH, p=PP, w=W-p.l-p.r, h=H-p.t-p.b;
+  pCtx.clearRect(0,0,W,H);
+  pCtx.fillStyle='#0d1117'; pCtx.fillRect(0,0,W,H);
+  if (pvHist.length < 2) {
+    pCtx.fillStyle='#8b949e'; pCtx.font='11px Courier New'; pCtx.textAlign='center';
+    pCtx.fillText('Warte auf Inverter-Daten…',W/2,H/2); return;
+  }
+  const mx = Math.max(...pvHist, 100);
+  pCtx.strokeStyle='#30363d'; pCtx.lineWidth=1;
+  for (let i=0;i<=4;i++) {
+    const y=p.t+h-(i/4)*h;
+    pCtx.beginPath(); pCtx.moveTo(p.l,y); pCtx.lineTo(p.l+w,y); pCtx.stroke();
+    pCtx.fillStyle='#8b949e'; pCtx.font='10px Courier New'; pCtx.textAlign='right';
+    pCtx.fillText(Math.round(mx*i/4)+' W',p.l-4,y+4);
+  }
+  const g=pCtx.createLinearGradient(0,p.t,0,p.t+h);
+  g.addColorStop(0,'rgba(0,196,180,.45)'); g.addColorStop(1,'rgba(0,196,180,.02)');
+  pCtx.beginPath();
+  pvHist.forEach((v,i)=>{const x=p.l+(i/(MAX_PTS-1))*w,y=p.t+h-(v/mx)*h;i===0?pCtx.moveTo(x,y):pCtx.lineTo(x,y)});
+  pCtx.lineTo(p.l+w,p.t+h); pCtx.lineTo(p.l,p.t+h); pCtx.closePath();
+  pCtx.fillStyle=g; pCtx.fill();
+  pCtx.beginPath(); pCtx.strokeStyle='#00c4b4'; pCtx.lineWidth=2;
+  pvHist.forEach((v,i)=>{const x=p.l+(i/(MAX_PTS-1))*w,y=p.t+h-(v/mx)*h;i===0?pCtx.moveTo(x,y):pCtx.lineTo(x,y)});
+  pCtx.stroke();
+}
+
+// ════════════════════════════════════════════════════════════
+//  BAR CHART (STATISTIK) — nur echte Live-Daten, keine Demo-Werte
+// ════════════════════════════════════════════════════════════
+let statMode='tag', sCtx, sW, sH;
+const SP={t:10,r:12,b:34,l:52};
+
+// ── Real data storage ─────────────────────────────────────────
+// statRecords: array of {ts: ISO-string, todayKWh, totalKWh, pvW, acW}
+// stored in localStorage, cleared on resetStatistik()
+let statRecords = [];
+
+function statSaveRecords() {
+  try { localStorage.setItem('statRecords', JSON.stringify(statRecords.slice(-2000))); } catch(e){}
+}
+function statLoadRecords() {
+  try {
+    const s = JSON.parse(localStorage.getItem('statRecords') || '[]');
+    statRecords = Array.isArray(s) ? s : [];
+  } catch(e){ statRecords = []; }
+}
+
+// Called from updateData() every poll cycle with real inverter values
+function statAddRecord(todayKWh, totalKWh, pvW, acW) {
+  statRecords.push({ ts: new Date().toISOString(), todayKWh, totalKWh, pvW, acW });
+  if (statRecords.length > 2000) statRecords.shift();
+  statSaveRecords();
+}
+
+// Build chart data from real records for current mode
+function getStatData(mode) {
+  if (!statRecords.length) return [];
+  const now = new Date();
+
+  if (mode === 'tag') {
+    // Hourly buckets for today — max pvW per hour
+    const buckets = {};
+    statRecords.forEach(r => {
+      const d = new Date(r.ts);
+      if (d.toDateString() !== now.toDateString()) return;
+      const h = d.getHours();
+      if (!buckets[h] || r.pvW > buckets[h]) buckets[h] = r.pvW||0;
+    });
+    return Array.from({length:24}, (_,h) => ({
+      label: h+':00', val: +(buckets[h]||0).toFixed(0)
+    })).filter((_,h) => h >= 5 && h <= 21);
+  }
+
+  if (mode === 'woche') {
+    // Daily kWh for last 7 days — max todayKWh per day
+    const days = {};
+    for (let i=6; i>=0; i--) {
+      const d = new Date(now); d.setDate(d.getDate()-i);
+      days[d.toDateString()] = { label: ['So','Mo','Di','Mi','Do','Fr','Sa'][d.getDay()], val: 0 };
+    }
+    statRecords.forEach(r => {
+      const key = new Date(r.ts).toDateString();
+      if (days[key] && r.todayKWh > days[key].val) days[key].val = r.todayKWh||0;
+    });
+    return Object.values(days).map(d => ({label:d.label, val:+d.val.toFixed(2)}));
+  }
+
+  if (mode === 'monat') {
+    // Daily kWh for current month
+    const buckets = {};
+    statRecords.forEach(r => {
+      const d = new Date(r.ts);
+      if (d.getMonth() !== now.getMonth() || d.getFullYear() !== now.getFullYear()) return;
+      const day = d.getDate();
+      if (!buckets[day] || r.todayKWh > buckets[day]) buckets[day] = r.todayKWh||0;
+    });
+    const dim = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+    return Array.from({length:dim}, (_,i) => ({
+      label: String(i+1), val: +(buckets[i+1]||0).toFixed(2)
+    }));
+  }
+
+  // jahr — monthly totals from totalKWh delta
+  const months = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+  const buckets = {};
+  statRecords.forEach(r => {
+    const d = new Date(r.ts);
+    if (d.getFullYear() !== now.getFullYear()) return;
+    const m = d.getMonth();
+    if (!buckets[m] || r.totalKWh > buckets[m]) buckets[m] = r.totalKWh||0;
+  });
+  // Convert to monthly delta
+  const result = [];
+  let prev = null;
+  for (let m=0; m<=11; m++) {
+    const cur = buckets[m]||0;
+    const delta = prev !== null ? Math.max(0, cur - prev) : cur;
+    result.push({ label: months[m], val: +delta.toFixed(1) });
+    if (buckets[m] !== undefined) prev = cur;
+  }
+  return result;
+}
+
+function setStatMode(mode, btn) {
+  statMode=mode;
+  document.querySelectorAll('.stat-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderStatChart();
+}
+
+function renderStatChart() {
+  const cv=document.getElementById('statChart');
+  if (!cv) return;
+  if (!sCtx) {
+    sCtx=cv.getContext('2d');
+    const rsz=()=>{cv.width=cv.parentElement.clientWidth;cv.height=220;sW=cv.width;sH=cv.height;renderStatChart()};
+    window.addEventListener('resize',rsz); rsz(); return;
+  }
+  const W=sW, H=sH, p=SP, w=W-p.l-p.r, h=H-p.t-p.b;
+  sCtx.clearRect(0,0,W,H); sCtx.fillStyle='#0d1117'; sCtx.fillRect(0,0,W,H);
+
+  const data = getStatData(statMode);
+  const hasData = data.some(d=>d.val>0);
+
+  if (!hasData) {
+    sCtx.fillStyle='#8b949e'; sCtx.font='12px Courier New'; sCtx.textAlign='center';
+    sCtx.fillText('Keine Daten — Statistik sammelt sich mit der Zeit',W/2,H/2-8);
+    sCtx.font='10px Courier New';
+    sCtx.fillText('Werte werden automatisch beim nächsten Inverter-Poll gespeichert',W/2,H/2+12);
+    // Summary: all zeros
+    ['stTotal','stAvg','stBest','stEur'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.textContent='0';
+    });
+    return;
+  }
+
+  const mx=Math.max(...data.map(d=>d.val),1);
+  const bW=Math.max(4,(w/data.length)-2);
+  sCtx.strokeStyle='#30363d'; sCtx.lineWidth=1;
+  for (let i=0;i<=4;i++) {
+    const y=p.t+h-(i/4)*h;
+    sCtx.beginPath(); sCtx.moveTo(p.l,y); sCtx.lineTo(p.l+w,y); sCtx.stroke();
+    sCtx.fillStyle='#8b949e'; sCtx.font='10px Courier New'; sCtx.textAlign='right';
+    sCtx.fillText((mx*i/4).toFixed(mx<10?2:1),p.l-4,y+4);
+  }
+  data.forEach((d,i)=>{
+    const x=p.l+(w/data.length)*i+(w/data.length-bW)/2, bh=(d.val/mx)*h, y=p.t+h-bh;
+    if (bh < 1) return;
+    const gr=sCtx.createLinearGradient(0,y,0,y+bh);
+    gr.addColorStop(0,'rgba(0,196,180,.85)'); gr.addColorStop(1,'rgba(0,196,180,.15)');
+    sCtx.fillStyle=gr; sCtx.fillRect(x,y,bW,bh);
+    const step=data.length>20?4:data.length>12?2:1;
+    if (i%step===0){sCtx.fillStyle='#8b949e';sCtx.font='9px Courier New';sCtx.textAlign='center';sCtx.fillText(d.label,x+bW/2,p.t+h+18);}
+  });
+
+  // Summary from real data
+  const vals=data.map(d=>d.val).filter(v=>v>0);
+  const tot=vals.reduce((a,b)=>a+b,0);
+  const eurKwh=parseFloat(document.getElementById('anlEurKwh')?.value)||0.30;
+  const eur=(statMode==='tag'?tot/1000:tot)*eurKwh;
+  document.getElementById('stTotal').textContent=tot.toFixed(statMode==='tag'?0:1);
+  document.getElementById('stAvg').textContent=vals.length?(tot/vals.length).toFixed(statMode==='tag'?0:2):'0';
+  document.getElementById('stBest').textContent=vals.length?Math.max(...vals).toFixed(statMode==='tag'?0:2):'0';
+  document.getElementById('stEur').textContent=eur.toFixed(2);
+}
+
+// ════════════════════════════════════════════════════════════
+//  UMWELTBONUS
+// ════════════════════════════════════════════════════════════
+function updateEco(todayKWh, totalKWh) {
+  // Apply reset offset so display starts from 0 after reset
+  const td = Math.max(0, todayKWh  - (ecoOffset.todayKWh||0));
+  const tt = Math.max(0, totalKWh  - (ecoOffset.totalKWh||0));
+  const co2t=tt*.527, co2d=td*.527, coal=tt*.404, coald=td*.404, trees=co2t/12.5;
+  document.getElementById('ecoCO2').textContent=co2t.toFixed(1);
+  document.getElementById('ecoCoal').textContent=coal.toFixed(1);
+  document.getElementById('ecoTrees').textContent=trees.toFixed(1);
+  document.getElementById('ecoCO2Today').textContent=co2d.toFixed(3);
+  document.getElementById('ecoCO2Total').textContent=co2t.toFixed(2);
+  document.getElementById('ecoCoalToday').textContent=coald.toFixed(3);
+  document.getElementById('ecoCoalTotal').textContent=coal.toFixed(2);
+  document.getElementById('ecoCO2Bar').style.width=Math.min(co2t/500*100,100)+'%';
+  document.getElementById('ecoCoalBar').style.width=Math.min(coal/385*100,100)+'%';
+  document.getElementById('ecoTreesBar').style.width=Math.min(trees/40*100,100)+'%';
+}
+
+// ════════════════════════════════════════════════════════════
+//  ANLAGE
+// ════════════════════════════════════════════════════════════
+function loadAnlage() {
+  try {
+    const s=JSON.parse(localStorage.getItem('anlage')||'{}');
+    document.getElementById('anlName').value=s.name||'';
+    document.getElementById('anlDate').value=s.date||'';
+    document.getElementById('anlCity').value=s.city||'';
+    document.getElementById('anlCountry').value=s.country||'';
+    document.getElementById('anlPeak').value=s.peak||'';
+    document.getElementById('anlEurKwh').value=s.eurKwh||'0.30';
+  } catch(e){}
+}
+function saveAnlage() {
+  try { localStorage.setItem('anlage',JSON.stringify({name:document.getElementById('anlName').value,date:document.getElementById('anlDate').value,city:document.getElementById('anlCity').value,country:document.getElementById('anlCountry').value,peak:document.getElementById('anlPeak').value,eurKwh:document.getElementById('anlEurKwh').value})); } catch(e){}
+  showAlert('alertAnlage','Gespeichert ✓','ok');
+}
+
+// ════════════════════════════════════════════════════════════
+//  FEHLER LOG
+// ════════════════════════════════════════════════════════════
+const faultLog=[];
+const FCODES={0x0001:'DC Over Voltage',0x0002:'DC Bus Over Voltage',0x0004:'DC Bus Low Voltage',0x0008:'DC Bus Unbalance',0x0010:'No Grid',0x0020:'Grid Over Voltage',0x0040:'Grid Under Voltage',0x0080:'Grid Over Frequency',0x0100:'Grid Under Frequency',0x0400:'Inverter Over Temp',0x0800:'Over Temperature'};
+let lastFaultCode=0;
+function checkFault(d) {
+  if (d.fault && d.status!==lastFaultCode) {
+    lastFaultCode=d.status;
+    faultLog.unshift({ts:fmtDatetime(new Date()),code:'0x'+(d.status||0).toString(16).toUpperCase().padStart(4,'0'),desc:FCODES[d.status]||'Unbekannt',acW:d.acW,active:true});
+    if (faultLog.length>100) faultLog.pop();
+    renderFaultLog();
+  } else if (!d.fault && lastFaultCode!==0) {
+    if (faultLog.length&&faultLog[0].active){faultLog[0].active=false;faultLog[0].clearedAt=fmtDatetime(new Date());}
+    lastFaultCode=0; renderFaultLog();
+  }
+}
+function renderFaultLog() {
+  const tbl=document.getElementById('faultTable'), emp=document.getElementById('faultEmpty');
+  document.getElementById('faultCount').textContent=faultLog.length+' Einträge';
+  if (!faultLog.length){tbl.style.display='none';emp.style.display='block';return;}
+  emp.style.display='none'; tbl.style.display='table';
+  document.getElementById('faultTbody').innerHTML=faultLog.map((f,i)=>`<tr><td style="color:var(--muted)">${faultLog.length-i}</td><td>${f.ts}</td><td style="color:var(--warn);font-weight:700">${f.code}</td><td>${f.desc}${f.clearedAt?'<br><span style="color:var(--muted);font-size:.68rem">Behoben: '+f.clearedAt+'</span>':''}</td><td>${(f.acW||0).toFixed(0)}</td><td><span class="ftag ${f.active?'active':'clear'}">${f.active?'AKTIV':'BEHOBEN'}</span></td></tr>`).join('');
+}
+function clearFaultLog(){if(!confirm('Fehler-Log löschen?'))return;faultLog.length=0;lastFaultCode=0;renderFaultLog();}
+
+// ════════════════════════════════════════════════════════════
+//  NTP / UHRZEIT
+// ════════════════════════════════════════════════════════════
+let ntpSynced=false, ntpLastSyncTime=null, sysStartTime=null, serverUptimeAtLoad=0;
+
+function loadNtpSettings() {
+  try {
+    const s=JSON.parse(localStorage.getItem('ntpCfg')||'{}');
+    document.getElementById('ntpServer1').value=s.s1||'pool.ntp.org';
+    document.getElementById('ntpServer2').value=s.s2||'time.google.com';
+    document.getElementById('ntpServer3').value=s.s3||'time.cloudflare.com';
+    document.getElementById('ntpTzOffset').value=s.tz!==undefined?s.tz:1;
+    document.getElementById('ntpDst').checked=s.dst!==false;
+    document.getElementById('ntpInterval').value=s.interval||21600;
+  } catch(e){}
+}
+function saveNtp() {
+  const cfg={s1:document.getElementById('ntpServer1').value,s2:document.getElementById('ntpServer2').value,s3:document.getElementById('ntpServer3').value,tz:parseFloat(document.getElementById('ntpTzOffset').value),dst:document.getElementById('ntpDst').checked,interval:parseInt(document.getElementById('ntpInterval').value)};
+  try { localStorage.setItem('ntpCfg',JSON.stringify(cfg)); } catch(e){}
+  // also send to device via config API
+  fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ntpServer1:cfg.s1,ntpServer2:cfg.s2,ntpServer3:cfg.s3,ntpTzOffset:cfg.tz,ntpDst:cfg.dst?1:0,ntpInterval:cfg.interval})})
+    .then(r=>showAlert('alertNtp',r.ok?'NTP-Einstellungen gespeichert ✓ — Neustart empfohlen':'Fehler beim Speichern',r.ok?'ok':'err'))
+    .catch(()=>showAlert('alertNtp','Netzwerkfehler!','err'));
+}
+function forceSyncNtp() {
+  fetch('/api/cmd',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cmd:'ntp_sync'})})
+    .then(()=>showAlert('alertNtp','NTP-Sync angefordert ✓','ok'))
+    .catch(()=>showAlert('alertNtp','Gerät nicht erreichbar','err'));
+}
+
+// Real-time clock driven by server uptime delta
+function updateClockDisplay() {
+  const now = new Date();
+  const h=String(now.getHours()).padStart(2,'0'), m=String(now.getMinutes()).padStart(2,'0'), s=String(now.getSeconds()).padStart(2,'0');
+  const el=document.getElementById('clockDisplay');
+  if (el) el.textContent=h+':'+m+':'+s;
+  const days=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+  const months=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  const del=document.getElementById('dateDisplay');
+  if (del) del.textContent=days[now.getDay()]+', '+now.getDate()+'. '+months[now.getMonth()]+' '+now.getFullYear();
+  // timestamp tiles
+  const fmt=fmtDatetime(now);
+  const tm=document.getElementById('tsMqtt'); if(tm&&tm.textContent==='–') tm.textContent=fmt;
+  const tmo=document.getElementById('tsModbus'); if(tmo&&tmo.textContent==='–') tmo.textContent=fmt;
+}
+
+function fmtDatetime(d) {
+  return d.toLocaleDateString('de-AT')+' '+d.toLocaleTimeString('de-AT');
+}
+function fmtUptime(s) {
+  const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60;
+  return h+'h '+String(m).padStart(2,'0')+'m '+String(sec).padStart(2,'0')+'s';
+}
+
+// ════════════════════════════════════════════════════════════
+//  STATISTIK RESET
+// ════════════════════════════════════════════════════════════
+// Stores an offset so displayed values start from 0 after reset
+let statOffset = {todayKWh:0, totalKWh:0, resetAt: null};
+
+function resetStatistik() {
+  if (!confirm('Statistik-Verlauf zurücksetzen?\n\nAlle gespeicherten Messwerte werden gelöscht.\nDer Chart startet mit den nächsten Live-Daten neu.')) return;
+  // Clear all stored records
+  statRecords = [];
+  try {
+    localStorage.removeItem('statRecords');
+    localStorage.removeItem('statOffset');
+  } catch(e){}
+  statOffset = { todayKWh:0, totalKWh:0, resetAt: null };
+  // Reset summary tiles to zero
+  ['stTotal','stAvg','stBest','stEur'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.textContent='0';
+  });
+  // Redraw empty chart
+  sCtx = null;
+  renderStatChart();
+  showAlert('alertStat', '✓ Statistik gelöscht — neue Daten werden automatisch gesammelt', 'ok');
+}
+
+function loadStatOffset() {
+  try {
+    const s = JSON.parse(localStorage.getItem('statOffset') || 'null');
+    if (s) statOffset = s;
+  } catch(e){}
+}
+
+// ════════════════════════════════════════════════════════════
+//  UMWELT RESET
+// ════════════════════════════════════════════════════════════
+let ecoOffset = { todayKWh:0, totalKWh:0, resetAt: null };
+
+function resetUmwelt() {
+  if (!confirm('Umweltbonus-Anzeige zurücksetzen?\n\nNur die Anzeige wird auf 0 gesetzt.')) return;
+  const todayRaw = parseFloat(document.getElementById('todayKWh').textContent) || 0;
+  const totalRaw = parseFloat(document.getElementById('totalKWh').textContent) || 0;
+  ecoOffset = { todayKWh: todayRaw, totalKWh: totalRaw, resetAt: fmtDatetime(new Date()) };
+  try { localStorage.setItem('ecoOffset', JSON.stringify(ecoOffset)); } catch(e){}
+  updateEco(0, 0);
+  showAlert('alertUmwelt', '✓ Umweltbonus zurückgesetzt am ' + ecoOffset.resetAt, 'ok');
+}
+
+function loadEcoOffset() {
+  try {
+    const s = JSON.parse(localStorage.getItem('ecoOffset') || 'null');
+    if (s) ecoOffset = s;
+  } catch(e){}
+}
+
+// ════════════════════════════════════════════════════════════
+//  SYSTEM RESET + RESTART
+// ════════════════════════════════════════════════════════════
+function doRestart() {
+  if (!confirm('Gerät neu starten?')) return;
+  fetch('/api/cmd',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cmd:'reset'})})
+    .catch(()=>{});
+  showAlert('alertSys','⚡ Neustart wird ausgeführt…','warn');
+}
+
+function doFactoryReset() {
+  const input = document.getElementById('resetConfirmInput').value.trim();
+  if (input !== 'RESET') {
+    showAlert('alertSys', '✗ Bitte "RESET" (Großbuchstaben) zur Bestätigung eingeben.', 'err');
+    return;
+  }
+  if (!confirm('⚠ ACHTUNG!\n\nAlle Einstellungen werden gelöscht.\nDas Gerät startet im AP-Modus neu.\n\nWirklich fortfahren?')) return;
+
+  // Clear localStorage
+  try {
+    localStorage.removeItem('anlage');
+    localStorage.removeItem('ntpCfg');
+    localStorage.removeItem('gwUsers');
+    localStorage.removeItem('statOffset');
+    localStorage.removeItem('statRecords');
+    localStorage.removeItem('ecoOffset');
+  } catch(e){}
+
+  // Send factory reset command to device
+  fetch('/api/cmd',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cmd:'factory_reset'})})
+    .catch(()=>{});
+
+  showAlert('alertSys','🗑 Factory Reset ausgeführt — Gerät startet neu im AP-Modus (Growatt-Setup / growatt123)','warn');
+  document.getElementById('resetConfirmInput').value = '';
+
+  // Reload page after 5s
+  setTimeout(()=>{ location.reload(); }, 5000);
+}
+
+// ════════════════════════════════════════════════════════════
+//  NETWORK — static IP toggle
+// ════════════════════════════════════════════════════════════
+function toggleStaticIp(mode) {
+  document.getElementById('staticIpBlock').style.display = mode === 'static' ? 'block' : 'none';
+}
+// ════════════════════════════════════════════════════════════
+let users=[];
+function loadUsers() {
+  try {
+    users=JSON.parse(localStorage.getItem('gwUsers')||'null')||[{username:'admin',role:'admin',lastLogin:'–',active:true}];
+  } catch(e){ users=[{username:'admin',role:'admin',lastLogin:'–',active:true}]; }
+  renderUsers();
+}
+function renderUsers() {
+  document.getElementById('userTbody').innerHTML=users.map((u,i)=>`
+    <tr>
+      <td style="font-weight:700;color:var(--text)">${u.username}</td>
+      <td><span class="role-badge ${u.role}">${{admin:'Admin',user:'Benutzer',view:'Gast'}[u.role]||u.role}</span></td>
+      <td style="color:var(--muted);font-size:.78rem">${u.lastLogin||'–'}</td>
+      <td><span class="sdot${u.active?'':' err'}"></span></td>
+      <td style="display:flex;gap:6px">
+        ${u.username!=='admin'?`<button class="btn btn-ghost btn-sm" onclick="toggleUserActive(${i})">${u.active?'Sperren':'Freigeben'}</button>`:''}
+        ${u.username!=='admin'?`<button class="btn btn-danger btn-sm" onclick="deleteUser(${i})">✕</button>`:'<span style="color:var(--muted);font-size:.72rem">geschützt</span>'}
+      </td>
+    </tr>`).join('');
+}
+function saveUsersStorage() {
+  try { localStorage.setItem('gwUsers',JSON.stringify(users)); } catch(e){}
+}
+function showAddUser(){document.getElementById('addUserCard').style.display='block';document.getElementById('newUsername').focus();}
+function hideAddUser(){document.getElementById('addUserCard').style.display='none';document.getElementById('newUsername').value='';document.getElementById('newPassword').value='';document.getElementById('newPasswordConfirm').value='';}
+function saveUser() {
+  const un=document.getElementById('newUsername').value.trim();
+  const pw=document.getElementById('newPassword').value;
+  const pc=document.getElementById('newPasswordConfirm').value;
+  const role=document.getElementById('newRole').value;
+  if (!un){showAlert('alertUserForm','Benutzername darf nicht leer sein','err');return;}
+  if (pw.length<4){showAlert('alertUserForm','Passwort mindestens 4 Zeichen','err');return;}
+  if (pw!==pc){showAlert('alertUserForm','Passwörter stimmen nicht überein','err');return;}
+  if (users.find(u=>u.username===un)){showAlert('alertUserForm','Benutzername existiert bereits','err');return;}
+  users.push({username:un,role,lastLogin:'–',active:true});
+  saveUsersStorage();
+  // send to device
+  fetch('/api/users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:un,password:pw,role})})
+    .catch(()=>{});
+  renderUsers(); hideAddUser();
+  showAlert('alertUser','Benutzer "'+un+'" erstellt ✓','ok');
+}
+function deleteUser(i) {
+  if (!confirm('Benutzer "'+users[i].username+'" löschen?')) return;
+  const un=users[i].username;
+  users.splice(i,1); saveUsersStorage(); renderUsers();
+  fetch('/api/users/'+encodeURIComponent(un),{method:'DELETE'}).catch(()=>{});
+  showAlert('alertUser','Benutzer gelöscht','ok');
+}
+function toggleUserActive(i) {
+  users[i].active=!users[i].active; saveUsersStorage(); renderUsers();
+  showAlert('alertUser','Benutzer "'+(users[i].username)+'" '+(users[i].active?'freigegeben':'gesperrt'),'ok');
+}
+function toggleAuth(on) {
+  fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({authEnabled:on})}).catch(()=>{});
+}
+
+// ════════════════════════════════════════════════════════════
+//  LIVE DATA POLLING
+// ════════════════════════════════════════════════════════════
+const EUR_PER_KWH=0.30;
+
+function updateData(d) {
+  const f=(v,dec)=>(v===undefined||v===null)?'–':(+v).toFixed(dec);
+  document.getElementById('pvW').textContent=f(d.pvW,0);
+  document.getElementById('acW').textContent=f(d.acW,0);
+  document.getElementById('acV').textContent=f(d.acV,1);
+  document.getElementById('acHz').textContent=f(d.acHz,2);
+  document.getElementById('pv1V').textContent=f(d.pv1V,1);
+  document.getElementById('pv1A').textContent=f(d.pv1A,2);
+  document.getElementById('tempC').textContent=f(d.tempC,1);
+  document.getElementById('todayKWh').textContent=f(d.todayKWh,2);
+  document.getElementById('totalKWh').textContent=f(d.totalKWh,1);
+  const eurKwh=parseFloat(document.getElementById('anlEurKwh')?.value)||EUR_PER_KWH;
+  document.getElementById('todayEur').textContent=f((d.todayKWh||0)*eurKwh,2);
+  document.getElementById('totalEur').textContent=f((d.totalKWh||0)*eurKwh,2);
+  document.getElementById('capWLive').textContent=d.capW||'–';
+  document.getElementById('capSlider').value=d.capW||1500;
+  document.getElementById('capDisplay').textContent=d.capW||1500;
+  const sm={0:'Warten',1:'Normal',3:'Fehler'};
+  document.getElementById('invStatus').textContent=sm[d.status]||d.status||'–';
+  document.getElementById('faultTxt').textContent=d.fault?'⚠ FAULT':'';
+  document.getElementById('pvDot').className='sdot'+(d.fault?' err':'');
+  document.getElementById('relayToggle').checked=!!d.relay;
+  document.getElementById('relayLabel').textContent=d.relay?'EIN':'AUS';
+  document.getElementById('lastUpdateTxt').textContent='Update: '+new Date().toLocaleTimeString('de-AT');
+  // power rate
+  if (d.pwrPct!==undefined) {
+    const sl=document.getElementById('pwrSlider');
+    if (document.activeElement!==sl){sl.value=d.pwrPct;document.getElementById('pwrDisplay').textContent=d.pwrPct;}
+    updatePwrDisplay(d.pwrPct,d.capW);
+  }
+  // NTP status from device
+  if (d.ntpSynced!==undefined) {
+    ntpSynced=d.ntpSynced;
+    const dot1=document.getElementById('ntpDot'), dot2=document.getElementById('ntpDot2');
+    const cls='sdot'+(ntpSynced?'':' err');
+    if(dot1) dot1.className=cls; if(dot2) dot2.className=cls;
+    const txt=document.getElementById('ntpStatusTxt');
+    if(txt) txt.textContent=ntpSynced?'✓ Synchronisiert':'✗ Nicht synchronisiert';
+    if(d.ntpTime) {
+      const ls=document.getElementById('ntpLastSync');
+      if(ls) ls.textContent='Letzte Sync: '+d.ntpTime;
+      const tm=document.getElementById('tsModbus'); if(tm) tm.textContent=d.ntpTime;
+    }
+    if(d.sysStartTime){const ts=document.getElementById('tsStart');if(ts)ts.textContent=d.sysStartTime;}
+  }
+  // eco + fault + stat recording
+  updateEco(d.todayKWh||0, d.totalKWh||0);
+  checkFault(d);
+  statAddRecord(d.todayKWh||0, d.totalKWh||0, d.pvW||0, d.acW||0);
+  // chart
+  pvHist.push(d.pvW||0);
+  if (pvHist.length>MAX_PTS) pvHist.shift();
+  drawChart();
+}
+
+async function pollData() {
+  try { const r=await fetch('/api/data'); if(r.ok) updateData(await r.json()); } catch(e){}
+}
+
+// ════════════════════════════════════════════════════════════
+//  STATUS
+// ════════════════════════════════════════════════════════════
+async function refreshStatus() {
+  try {
+    const r=await fetch('/api/status'); if(!r.ok) return;
+    const d=await r.json();
+    document.getElementById('sysFw').textContent=d.fw+' ('+(d.build||'')+')';
+    document.getElementById('sysIp').textContent=d.ip||'–';
+    document.getElementById('sysRssi').textContent=d.rssi||'–';
+    document.getElementById('sysUptime').textContent=fmtUptime(d.uptime||0);
+    document.getElementById('sysHeap').textContent=d.heap||'–';
+    document.getElementById('sysMqtt').textContent=d.mqtt?'Verbunden ✓':'Getrennt ✗';
+    document.getElementById('sysHostname').textContent=d.hostname||'–';
+    document.getElementById('sysMac').textContent=d.mac||'–';
+    document.getElementById('sysNtp').textContent=d.ntpSynced?'✓ Sync':'✗ Nicht sync';
+    document.getElementById('fwBadge').textContent='v'+(d.fw||'?');
+    document.getElementById('footVer').textContent='v'+(d.fw||'?');
+    document.getElementById('mqttDot').className='sdot'+(d.mqtt?'':' err');
+    if (!sysStartTime && d.uptime) {
+      sysStartTime=new Date(Date.now()-d.uptime*1000);
+      const ts=document.getElementById('tsStart'); if(ts) ts.textContent=fmtDatetime(sysStartTime);
+    }
+    serverUptimeAtLoad=d.uptime||0;
+  } catch(e){}
+}
+
+// ════════════════════════════════════════════════════════════
+//  CONFIG
+// ════════════════════════════════════════════════════════════
+async function loadConfig() {
+  try {
+    const r=await fetch('/api/config'); if(!r.ok) return;
+    const d=await r.json();
+    document.getElementById('cfgSSID').value=d.wSSID||'';
+    document.getElementById('cfgMHost').value=d.mHost||'';
+    document.getElementById('cfgMPort').value=d.mPort||1883;
+    document.getElementById('cfgMUser').value=d.mUser||'';
+    document.getElementById('cfgMTopic').value=d.mTopic||'';
+    document.getElementById('cfgDevName').value=d.devName||'';
+    document.getElementById('cfgHostname').value=d.hostname||d.devName||'Growatt-SHINE-X';
+    const ipMode=d.staticIp?'static':'dhcp';
+    document.getElementById('cfgIpMode').value=ipMode;
+    toggleStaticIp(ipMode);
+    document.getElementById('cfgStaticIp').value=d.staticIpAddr||'';
+    document.getElementById('cfgSubnet').value=d.subnet||'255.255.255.0';
+    document.getElementById('cfgGateway').value=d.gateway||'';
+    document.getElementById('cfgDns').value=d.dns||'8.8.8.8';
+    document.getElementById('cfgHaPrefix').value=d.haPrefix||'homeassistant';
+    document.getElementById('cfgHaDisc').checked=d.haDiscovery!==false;
+    document.getElementById('cfgMbWrite').checked=!!d.modbusWrite;
+    document.getElementById('authEnabled').checked=!!d.authEnabled;
+    if (d.ntpServer1) document.getElementById('ntpServer1').value=d.ntpServer1;
+    if (d.ntpServer2) document.getElementById('ntpServer2').value=d.ntpServer2;
+    if (d.ntpServer3) document.getElementById('ntpServer3').value=d.ntpServer3;
+    if (d.ntpTzOffset!==undefined) document.getElementById('ntpTzOffset').value=d.ntpTzOffset;
+    if (d.ntpDst!==undefined) document.getElementById('ntpDst').checked=!!d.ntpDst;
+    if (d.ntpInterval) document.getElementById('ntpInterval').value=d.ntpInterval;
+    const pct=d.pwrPct!==undefined?d.pwrPct:100;
+    document.getElementById('pwrSlider').value=pct;
+    document.getElementById('pwrDisplay').textContent=pct;
+    updatePwrDisplay(pct,d.capW||1500);
+  } catch(e){}
+}
+
+function showAlert(id, msg, type) {
+  const el=document.getElementById(id); if(!el) return;
+  el.textContent=msg; el.className='alert '+type;
+  setTimeout(()=>{el.className='alert';},5000);
+}
+
+async function saveConfig() {
+  const staticMode = document.getElementById('cfgIpMode').value === 'static';
+  const body={
+    wSSID:       document.getElementById('cfgSSID').value,
+    wPass:       document.getElementById('cfgPass').value,
+    mHost:       document.getElementById('cfgMHost').value,
+    mPort:       parseInt(document.getElementById('cfgMPort').value)||1883,
+    mUser:       document.getElementById('cfgMUser').value,
+    mPass:       document.getElementById('cfgMPass').value,
+    mTopic:      document.getElementById('cfgMTopic').value,
+    devName:     document.getElementById('cfgDevName').value,
+    hostname:    document.getElementById('cfgHostname').value||'Growatt-SHINE-X',
+    staticIp:    staticMode,
+    staticIpAddr:document.getElementById('cfgStaticIp').value,
+    subnet:      document.getElementById('cfgSubnet').value||'255.255.255.0',
+    gateway:     document.getElementById('cfgGateway').value,
+    dns:         document.getElementById('cfgDns').value||'8.8.8.8',
+    haDiscovery: document.getElementById('cfgHaDisc').checked,
+    haPrefix:    document.getElementById('cfgHaPrefix').value||'homeassistant',
+    modbusWrite: document.getElementById('cfgMbWrite').checked
+  };
+  try {
+    const r=await fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    showAlert('alertCfg',r.ok?'Gespeichert ✓ – Neustart empfohlen':'Fehler!',r.ok?'ok':'err');
+  } catch(e){showAlert('alertCfg','Netzwerkfehler!','err');}
+}
+
+// ════════════════════════════════════════════════════════════
+//  CAP + RELAY + POWER RATE
+// ════════════════════════════════════════════════════════════
+async function saveCap() {
+  const w=parseInt(document.getElementById('capSlider').value);
+  await fetch('/api/cap',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({capW:w})});
+}
+async function setRelay(on) {
+  document.getElementById('relayLabel').textContent=on?'EIN':'AUS';
+  await fetch('/api/relay',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({relay:on})});
+}
+function onPwrSlider(v) {
+  document.getElementById('pwrDisplay').textContent=v;
+  updatePwrDisplay(parseInt(v));
+}
+function updatePwrDisplay(pct,capW) {
+  const mW=capW||parseInt(document.getElementById('capDisplay').textContent)||1500;
+  const el1=document.getElementById('pwrRateActive'), el2=document.getElementById('pwrRateW');
+  if(el1) el1.textContent=pct; if(el2) el2.textContent=Math.round(mW*pct/100);
+}
+async function applyPowerRate(write) {
+  const pct=parseInt(document.getElementById('pwrSlider').value);
+  const mbEn=document.getElementById('cfgMbWrite').checked;
+  if (write&&!mbEn){showAlert('alertPwr','⚠ Modbus-Schreiben in Einstellungen aktivieren!','err');return;}
+  try {
+    const r=await fetch('/api/powerRate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pct,write:write&&mbEn})});
+    const d=await r.json();
+    showAlert('alertPwr',d.written?'✓ '+pct+'% an Wechselrichter gesendet':'✓ '+pct+'% gespeichert',d.ok?'ok':'err');
+    updatePwrDisplay(pct);
+  } catch(e){showAlert('alertPwr','Netzwerkfehler!','err');}
+}
+
+// ════════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════════
+initChart();
+loadConfig();
+loadAnlage();
+loadNtpSettings();
+loadUsers();
+loadStatOffset();
+loadEcoOffset();
+statLoadRecords();
+renderFaultLog();
+refreshStatus();
+pollData();
+// live clock tick every second
+setInterval(updateClockDisplay, 1000);
+// poll inverter every 5s
+setInterval(pollData, 5000);
+// refresh system status every 30s
+setInterval(refreshStatus, 30000);
+// update MQTT timestamp tile
+setInterval(()=>{const t=document.getElementById('tsMqtt');if(t&&t.textContent!=='–')t.textContent=fmtDatetime(new Date());},10000);
+</script>
+</body>
+</html>
