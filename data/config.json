@@ -1,0 +1,12 @@
+{
+  "wSSID":   "MeinNetzwerk",
+  "wPass":   "MeinPasswort",
+  "mHost":   "192.168.1.100",
+  "mPort":   1883,
+  "mUser":   "",
+  "mPass":   "",
+  "mTopic":  "growatt/shine",
+  "capW":    1500,
+  "relay":   false,
+  "devName": "Growatt-SHINE-X"
+}
