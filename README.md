@@ -1,5 +1,11 @@
 # Growatt SHINE WiFi X — ESP8266 Firmware
 
+<img width="1707" height="1300" alt="grafik" src="https://github.com/user-attachments/assets/9a5336fa-c07e-4ddb-a29b-e6d9f402276d" />
+
+<img width="1707" height="1300" alt="grafik" src="https://github.com/user-attachments/assets/b1e23bcf-0ecd-4ce5-82dd-d71997cecb63" />
+
+
+
 Replacement firmware für den **Growatt SHINE WiFi X** Dongle, kompatibel mit dem **Growatt MIC 1500TL-X** Wechselrichter.
 
 ---
